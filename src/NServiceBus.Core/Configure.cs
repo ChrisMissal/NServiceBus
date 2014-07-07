@@ -183,8 +183,6 @@ namespace NServiceBus
                 this.DefaultBuilder();
             }
 
-            Address.InitializeLocalAddress(settings.EndpointName());
-
             WireUpConfigSectionOverrides();
 
             featureActivator = new FeatureActivator(Settings);

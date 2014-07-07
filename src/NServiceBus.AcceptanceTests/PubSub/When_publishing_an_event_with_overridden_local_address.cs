@@ -56,7 +56,6 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    Address.InitializeLocalAddress("myinputqueue");
                     c.DisableFeature<AutoSubscribe>();
                 })
                     .AddMapping<MyEvent>(typeof(Publisher));
