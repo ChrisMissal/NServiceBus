@@ -31,12 +31,11 @@
         /// Sets the address of this endpoint.
         /// </summary>
         /// <param name="queue">The queue name.</param>
-        public static void InitializeLocalAddress(string queue)
+        [ObsoleteEx(RemoveInVersion = "6.0", TreatAsErrorFromVersion = "5.0", Replacement = "ConfigureTransport<T>.LocalAddress(queue)")]
+// ReSharper disable once UnusedParameter.Global
+         public static void InitializeLocalAddress(string queue)
         {
-            Local = Parse(queue);
-
-            if (preventChanges)
-                throw new InvalidOperationException("Overwriting a previously set local address is a very dangerous operation. If you think that your scenario warrants it, you can catch this exception and continue.");
+            throw new InvalidOperationException();
         }
 
         /// <summary>
@@ -68,6 +67,14 @@
         public static void IgnoreMachineName()
         {
             ignoreMachineName = true;
+        }
+
+        /// <summary>
+        /// Prevents changes to all addresses.
+        /// </summary>
+        public static void PreventChanges()
+        {
+            preventChanges = true;
         }
 
         /// <summary>
@@ -177,14 +184,6 @@
         }
 
         /// <summary>
-        /// Prevents changes to all addresses.
-        /// </summary>
-        public static void PreventChanges()
-        {
-            preventChanges = true;
-        }
-
-        /// <summary>
         /// The (lowercase) name of the queue not including the name of the machine or location depending on the address mode.
         /// </summary>
         public string Queue { get; private set; }
@@ -249,11 +248,10 @@
         }
 
         static string defaultMachine = RuntimeEnvironment.MachineName;
-        static bool preventChanges;
 
         readonly string queueLowerCased;
         readonly string machineLowerCased;
         static bool ignoreMachineName;
-
+        static bool preventChanges;
     }
 }

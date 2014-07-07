@@ -5,18 +5,35 @@ namespace NServiceBus.Transports
     using Unicast.Transport;
 
     /// <summary>
-    /// Base class for configuring <see cref="TransportDefinition"/> features.
+    ///     Base class for configuring <see cref="TransportDefinition" /> features.
     /// </summary>
-    /// <typeparam name="T">The <see cref="TransportDefinition"/> to configure.</typeparam>
+    /// <typeparam name="T">The <see cref="TransportDefinition" /> to configure.</typeparam>
     public abstract class ConfigureTransport<T> : Feature, IConfigureTransport<T> where T : TransportDefinition, new()
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="ConfigureTransport{T}"/>.
+        ///     Used by implementations to provide an example connection string that till be used for the possible exception thrown
+        ///     if the <see cref="RequiresConnectionString" /> requirement is not met.
+        /// </summary>
+        protected abstract string ExampleConnectionStringForErrorMessage { get; }
+
+        /// <summary>
+        ///     Used by implementations to control if a connection string is necessary.
+        /// </summary>
+        /// <remarks>
+        ///     If this is true and a connection string is not returned by
+        ///     <see cref="TransportConnectionString.GetConnectionStringOrNull" /> then an exception will be thrown.
+        /// </remarks>
+        protected virtual bool RequiresConnectionString
+        {
+            get { return true; }
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of <see cref="ConfigureTransport{T}" />.
         /// </summary>
         public void Configure(Configure config)
         {
             var connectionString = config.Settings.Get<TransportConnectionString>().GetConnectionStringOrNull();
-
 
             if (connectionString == null && RequiresConnectionString)
             {
@@ -25,30 +42,29 @@ namespace NServiceBus.Transports
 
             config.Settings.Set("NServiceBus.Transport.ConnectionString", connectionString);
 
+            if (!String.IsNullOrEmpty(localAddress))
+            {
+                config.Settings.Set("NServiceBus.LocalAddress", localAddress);
+            }
+
             var selectedTransportDefinition = config.Settings.Get<TransportDefinition>();
             config.Configurer.RegisterSingleton<TransportDefinition>(selectedTransportDefinition);
             InternalConfigure(config);
         }
 
         /// <summary>
-        /// Gives implementations access to the <see cref="Configure"/> instance at construction time.
+        ///     Sets the address of this endpoint.
         /// </summary>
-        protected abstract void InternalConfigure(Configure config);
-
-        /// <summary>
-        /// Used by implementations to provide an example connection string that till be used for the possible exception thrown if the <see cref="RequiresConnectionString"/> requirement is not met.
-        /// </summary>
-        protected abstract string ExampleConnectionStringForErrorMessage { get; }
-
-        /// <summary>
-        /// Used by implementations to control if a connection string is necessary.
-        /// </summary>
-        /// <remarks>If this is true and a connection string is not returned by <see cref="TransportConnectionString.GetConnectionStringOrNull"/> then an exception will be thrown.</remarks>
-        protected virtual bool RequiresConnectionString
+        /// <param name="address">The queue name.</param>
+        protected void LocalAddress(string address)
         {
-            get { return true; }
+            localAddress = address;
         }
 
+        /// <summary>
+        ///     Gives implementations access to the <see cref="Configure" /> instance at construction time.
+        /// </summary>
+        protected abstract void InternalConfigure(Configure config);
 
         static string GetConfigFileIfExists()
         {
@@ -65,5 +81,6 @@ Here is an example of what is required:
     <add name=""NServiceBus/Transport"" connectionString=""{2}"" />
   </connectionStrings>";
 
+        string localAddress;
     }
 }
